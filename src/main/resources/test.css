@@ -1,0 +1,31 @@
+body {
+    color: black;
+    background: gray;
+    font-size: 1em;
+    padding: 10px;
+}
+
+#left {
+    background: gray;
+    font-size: 1.2em;
+    font-style: italic;
+    margin-left: 40px;
+    text-decoration: underline;
+}
+
+#right {
+    background: gray;
+    font-size: 1.4em;
+    font-style: bold;
+    margin-left: 20px;
+    text-decoration: underline;
+}
+
+.info, a {
+    background: gray;
+    color: red;
+    font-size: 1.6em;
+    margin-left: 20px;
+    padding: 20px;
+    text-decoration: underline;
+}
