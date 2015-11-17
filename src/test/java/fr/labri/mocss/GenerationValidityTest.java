@@ -68,8 +68,7 @@ public class GenerationValidityTest {
         this.config.setDebug(true);
         this.config.setInputFile(cssInputFile);
         this.config.setOutputFile(this.sassGeneratedFile);
-        this.config.setIgnoreSemantic(false);
-        this.config.setNoDuplicatesInRuleset(false);
+        this.config.setPreserveSemantic(true);
     }
 
     @Before
@@ -148,36 +147,7 @@ public class GenerationValidityTest {
         List<CssRuleset> initialRulesets = cssParserInputFile.getRulesets();
         List<CssRuleset> generatedRulesets = cssParserGeneratedFile.getRulesets();
 
-        if (Config.getInstance().ignoreSemantic()) {
-            Function<List<CssRuleset>, Map<String, List<DeclarationConcrete>>> mergeIdenticalSelectors = rulesets -> {
-                Map<String, List<DeclarationConcrete>> result = new HashMap<>();
-                rulesets.forEach(ruleset -> {
-                    String selector = ruleset.getSelector().getSelector();
-                    List<DeclarationConcrete> declarations = ruleset.getDeclarations();
-                    if (!result.containsKey(selector)) {
-                        result.put(selector, Lists.newArrayList());
-                    }
-                    result.get(selector).addAll(declarations);
-                });
-                return result;
-            };
-
-            Map<String, List<DeclarationConcrete>> initialData = mergeIdenticalSelectors.apply(initialRulesets);
-            Map<String, List<DeclarationConcrete>> generatedData = mergeIdenticalSelectors.apply(generatedRulesets);
-
-            assertEquals(initialData.keySet(), generatedData.keySet());
-
-            initialData.forEach((initialSelector, initialDeclarations) -> {
-                List<DeclarationConcrete> generatedDeclarations = generatedData.get(initialSelector);
-
-                if (Config.getInstance().noDuplicatesInRuleset()) {
-                    assertEquals(initialDeclarations.size(), generatedDeclarations.size());
-                }
-
-                assertEquals(Sets.newHashSet(initialDeclarations), Sets.newHashSet(generatedDeclarations));
-            });
-        }
-        else {
+        if (Config.getInstance().preserveSemantic()) {
             Consumer<List<CssRuleset>> rulesetsSorting = r -> {
                 Collections.sort(r, (CssRuleset r1, CssRuleset r2) -> {
                     Selector s1 = r1.getSelector();
@@ -217,6 +187,34 @@ public class GenerationValidityTest {
 
                 assertEquals(Sets.newHashSet(initialDeclarations), Sets.newHashSet(generatedDeclarations));
             }
+        } else {
+            Function<List<CssRuleset>, Map<String, List<DeclarationConcrete>>> mergeIdenticalSelectors = rulesets -> {
+                Map<String, List<DeclarationConcrete>> result = new HashMap<>();
+                rulesets.forEach(ruleset -> {
+                    String selector = ruleset.getSelector().getSelector();
+                    List<DeclarationConcrete> declarations = ruleset.getDeclarations();
+                    if (!result.containsKey(selector)) {
+                        result.put(selector, Lists.newArrayList());
+                    }
+                    result.get(selector).addAll(declarations);
+                });
+                return result;
+            };
+
+            Map<String, List<DeclarationConcrete>> initialData = mergeIdenticalSelectors.apply(initialRulesets);
+            Map<String, List<DeclarationConcrete>> generatedData = mergeIdenticalSelectors.apply(generatedRulesets);
+
+            assertEquals(initialData.keySet(), generatedData.keySet());
+
+            initialData.forEach((initialSelector, initialDeclarations) -> {
+                List<DeclarationConcrete> generatedDeclarations = generatedData.get(initialSelector);
+
+                if (Config.getInstance().noDuplicatesInRuleset()) {
+                    assertEquals(initialDeclarations.size(), generatedDeclarations.size());
+                }
+
+                assertEquals(Sets.newHashSet(initialDeclarations), Sets.newHashSet(generatedDeclarations));
+            });
         }
     }
 

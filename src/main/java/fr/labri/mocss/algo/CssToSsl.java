@@ -71,7 +71,7 @@ public class CssToSsl {
                 .map(ruleset -> (SslRuleset) ruleset)
                 .collect(Collectors.toList());
 
-        if (!Config.getInstance().ignoreSemantic()) {
+        if (Config.getInstance().preserveSemantic()) {
             splitSelectors(generatedMixins, generatedRulesets);
             mergeRulesetsWithSamePosition(generatedRulesets);
             orderGeneratedRulesets(generatedRulesets);

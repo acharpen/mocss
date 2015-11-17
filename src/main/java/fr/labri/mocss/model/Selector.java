@@ -38,7 +38,7 @@ public class Selector extends ElementWithIdentifier implements ElementWithPositi
 
     @Override
     public String getIdentifier() {
-        return Config.getInstance().ignoreSemantic() ? selector : selector + position.getLineNumber();
+        return Config.getInstance().preserveSemantic() ? selector + position.getLineNumber() : selector;
     }
 
     @Override

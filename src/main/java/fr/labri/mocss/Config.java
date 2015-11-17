@@ -52,10 +52,10 @@ public class Config {
             usage = "language of the output file: ")
     private OutputFormat outputFormat = OutputFormat.SCSS;
 
-    @Option(name = "--ignore-semantic",
-            usage = "ignores semantic of the css input file. "
-                    + "If sets, less mixins are generated.")
-    private boolean ignoreSemantic = false;
+    @Option(name = "--preserve-semantic",
+            usage = "preserves semantic of the css input file. "
+                    + "If sets, more mixins are generated.")
+    private boolean preserveSemantic = false;
 
     @Option(name = "--no-duplicates-ruleset",
             usage = "avoids duplicated declarations in rulesets. "
@@ -129,8 +129,8 @@ public class Config {
         this.outputFormat = outputFormat;
     }
 
-    public void setIgnoreSemantic(boolean ignoreSemantic) {
-        this.ignoreSemantic = ignoreSemantic;
+    public void setPreserveSemantic(boolean preserveSemantic) {
+        this.preserveSemantic = preserveSemantic;
     }
 
     public void setNoDuplicatesInRuleset(boolean noDuplicatesInRuleset) {
@@ -195,8 +195,8 @@ public class Config {
         return this.outputFormat;
     }
 
-    public boolean ignoreSemantic() {
-        return this.ignoreSemantic;
+    public boolean preserveSemantic() {
+        return this.preserveSemantic;
     }
 
     public boolean noDuplicatesInRuleset() {
