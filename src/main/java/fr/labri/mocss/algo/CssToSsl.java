@@ -59,9 +59,7 @@ public class CssToSsl {
             spanningArborescence(lattice);
         }
 
-        if (!Config.getInstance().aggressiveMode()) {
-            filterNodes(lattice);
-        }
+        filterNodes(lattice);
 
         List<SslStatement> statements = generateStatements(lattice);
         List<SslMixin> generatedMixins = statements.stream()
@@ -193,10 +191,20 @@ public class CssToSsl {
         };
 
         lattice.topologicalOrder().forEach(node -> {
-            int simplifiedDeclarationsNb = node.getSimplifiedDeclarations().size();
             int childrenNb = node.getChildren().size();
-            if ((simplifiedDeclarationsNb <= Config.getInstance().simplifiedDeclarationsMinNb())
-                    || (childrenNb > 0 && childrenNb <= Config.getInstance().childrenMinNb())) {
+            Set<Declaration> declarations = node.getSimplifiedDeclarations();
+            long concreteDeclarationsNb = declarations.stream()
+                    .filter(declaration -> declaration instanceof DeclarationConcrete)
+                    .map(declaration -> (DeclarationConcrete) declaration)
+                    .count();
+            long abstractDeclarationsNb = declarations.stream()
+                    .filter(declaration -> declaration instanceof DeclarationAbstract)
+                    .map(declaration -> (DeclarationAbstract) declaration)
+                    .count();
+
+            if ((childrenNb > 0 && childrenNb < Config.getInstance().childrenMinNb())
+                    || concreteDeclarationsNb < Config.getInstance().concreteDeclarationsMinNb()
+                    || abstractDeclarationsNb > Config.getInstance().abstractDeclarationsMaxNb()) {
                 handleNode.accept(node);
             }
         });
@@ -323,7 +331,7 @@ public class CssToSsl {
                     ruleset.getSelectors().forEach(selector -> {
                         rulesets.add(new SslRuleset(selector, new SslMixinCall(newMixin)));
                     });
-        };
+                };
 
         List<SslRuleset> oldRulesets = Lists.newArrayList();
         List<SslRuleset> newRulesets = Lists.newArrayList();
@@ -334,13 +342,20 @@ public class CssToSsl {
                 .forEach(ruleset -> {
                     oldRulesets.add(ruleset);
                     Set<Declaration> declarations = ruleset.getDeclarations();
+                    long concreteDeclarationsNb = declarations.stream()
+                            .filter(declaration -> declaration instanceof DeclarationConcrete)
+                            .map(declaration -> (DeclarationConcrete) declaration)
+                            .count();
+                    long abstractDeclarationsNb = declarations.stream()
+                            .filter(declaration -> declaration instanceof DeclarationAbstract)
+                            .map(declaration -> (DeclarationAbstract) declaration)
+                            .count();
 
                     if (declarations.isEmpty() && ruleset.getMixinCalls().size() == 1) {
                         splitWithoutMixin.accept(ruleset, newRulesets);
-                    } else if (Config.getInstance().aggressiveMode()) {
-                        splitWithMixin.apply(ruleset).apply(newRulesets).accept(newMixins);
-                    } else if (declarations.size() <= Config.getInstance().simplifiedDeclarationsMinNb()) {
-                            splitWithoutMixin.accept(ruleset, newRulesets);
+                    } else if (concreteDeclarationsNb < Config.getInstance().concreteDeclarationsMinNb()
+                            || abstractDeclarationsNb > Config.getInstance().abstractDeclarationsMaxNb()) {
+                        splitWithoutMixin.accept(ruleset, newRulesets);
                     } else {
                         splitWithMixin.apply(ruleset).apply(newRulesets).accept(newMixins);
                     }

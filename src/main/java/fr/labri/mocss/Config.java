@@ -62,22 +62,23 @@ public class Config {
                     + "If sets, more mixins are generated.")
     private boolean noDuplicatesInRuleset = false;
 
-    @Option(name = "--full",
-            usage = "generates all possible mixins. "
-                    + "If sets, options 'min-children' and 'min-declarations' are ignored.")
-    private boolean aggressiveMode = false;
+    @Option(name = "--min-children",
+            usage = "avoids mixins used less than VALUE times. "
+                    + "Lower the value is, less mixins are generated.",
+            metaVar = "VALUE")
+    private int childrenMinNb = 2;
 
     @Option(name = "--min-declarations",
             usage = "avoids mixins introducing less than VALUE declarations. "
                     + "Lower the value is, less mixins are generated.",
             metaVar = "VALUE")
-    private int simplifiedDeclarationsMinNb = 5;
+    private int concreteDeclarationsMinNb = 4;
 
-    @Option(name = "--min-children",
-            usage = "avoids mixins used less than VALUE times. "
+    @Option(name = "--max-parameters",
+            usage = "avoids mixins having more than VALUE parameters. "
                     + "Lower the value is, less mixins are generated.",
             metaVar = "VALUE")
-    private int childrenMinNb = 1;
+    private int abstractDeclarationsMaxNb = 6;
 
     @Option(name = "--debug",
             usage = "debug mode")
@@ -136,16 +137,16 @@ public class Config {
         this.noDuplicatesInRuleset = noDuplicatesInRuleset;
     }
 
-    public void setAggressiveMode(boolean aggressiveMode) {
-        this.aggressiveMode = aggressiveMode;
-    }
-
-    public void setSimplifiedDeclarationsMinNb(int simplifiedDeclarationsMinNb) {
-        this.simplifiedDeclarationsMinNb = simplifiedDeclarationsMinNb;
-    }
-
     public void setChildrenMinNb(int childrenMinNb) {
         this.childrenMinNb = childrenMinNb;
+    }
+
+    public void setConcreteDeclarationsMinNb(int concreteDeclarationsMinNb) {
+        this.concreteDeclarationsMinNb = concreteDeclarationsMinNb;
+    }
+
+    public void setAbstractDeclarationsMaxNb(int abstractDeclarationsMaxNb) {
+        this.abstractDeclarationsMaxNb = abstractDeclarationsMaxNb;
     }
 
     public void setDebug(boolean debug) {
@@ -202,16 +203,16 @@ public class Config {
         return this.noDuplicatesInRuleset;
     }
 
-    public boolean aggressiveMode() {
-        return aggressiveMode;
-    }
-
-    public int simplifiedDeclarationsMinNb() {
-        return this.simplifiedDeclarationsMinNb;
-    }
-
     public int childrenMinNb() {
         return this.childrenMinNb;
+    }
+
+    public int concreteDeclarationsMinNb() {
+        return this.concreteDeclarationsMinNb;
+    }
+
+    public int abstractDeclarationsMaxNb() {
+        return this.abstractDeclarationsMaxNb;
     }
 
     public boolean debug() {
