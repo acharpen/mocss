@@ -219,24 +219,29 @@ public class CssToSsl {
                 parents.forEach(parent -> {
                     boolean removed = parent.getChildren().remove(node);
                     assert removed;
-                    parent.getChildren().addAll(children);
                 });
                 children.forEach(child -> {
                     boolean removed = child.getParents().remove(node);
                     assert removed;
-                    child.getParents().addAll(parents);
                 });
                 boolean removed = lattice.getNodes().remove(node);
                 assert removed;
             } else {
-                parents.forEach(parent -> parent.getChildren().addAll(children));
                 children.forEach(child -> {
                     boolean removed = child.getParents().remove(node);
                     assert removed;
-                    child.getParents().addAll(parents);
                 });
                 node.getChildren().clear();
             }
+            parents.forEach(parent -> {
+                children.forEach(child -> {
+                    Set<Node> descendants = parent.getAllChildren();
+                    if (!descendants.contains(child)) {
+                        parent.getChildren().add(child);
+                        child.getParents().add(parent);
+                    }
+                });
+            });
         };
 
         lattice.topologicalOrder().forEach(node -> {
