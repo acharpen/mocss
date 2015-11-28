@@ -72,13 +72,13 @@ public class Config {
             usage = "avoids mixins introducing less than VALUE declarations. "
                     + "Lower the value is, less mixins are generated.",
             metaVar = "VALUE")
-    private int concreteDeclarationsMinNb = 4;
+    private int declarationsMinNb = 4;
 
     @Option(name = "--max-parameters",
             usage = "avoids mixins having more than VALUE parameters. "
                     + "Lower the value is, less mixins are generated.",
             metaVar = "VALUE")
-    private int abstractDeclarationsMaxNb = 6;
+    private int parametersMaxNb = 6;
 
     @Option(name = "--debug",
             usage = "debug mode")
@@ -141,12 +141,12 @@ public class Config {
         this.childrenMinNb = childrenMinNb;
     }
 
-    public void setConcreteDeclarationsMinNb(int concreteDeclarationsMinNb) {
-        this.concreteDeclarationsMinNb = concreteDeclarationsMinNb;
+    public void setDeclarationsMinNb(int declarationsMinNb) {
+        this.declarationsMinNb = declarationsMinNb;
     }
 
-    public void setAbstractDeclarationsMaxNb(int abstractDeclarationsMaxNb) {
-        this.abstractDeclarationsMaxNb = abstractDeclarationsMaxNb;
+    public void setParametersMaxNb(int parametersMaxNb) {
+        this.parametersMaxNb = parametersMaxNb;
     }
 
     public void setDebug(boolean debug) {
@@ -207,12 +207,12 @@ public class Config {
         return this.childrenMinNb;
     }
 
-    public int concreteDeclarationsMinNb() {
-        return this.concreteDeclarationsMinNb;
+    public int declarationsMinNb() {
+        return this.declarationsMinNb;
     }
 
-    public int abstractDeclarationsMaxNb() {
-        return this.abstractDeclarationsMaxNb;
+    public int parametersMaxNb() {
+        return this.parametersMaxNb;
     }
 
     public boolean debug() {

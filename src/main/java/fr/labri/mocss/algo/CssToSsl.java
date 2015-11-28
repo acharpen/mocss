@@ -162,54 +162,6 @@ public class CssToSsl {
         });
     }
 
-    private static void filterNodes(Lattice lattice) {
-        Consumer<Node> handleNode = node -> {
-            Set<Node> parents = node.getParents();
-            Set<Node> children = node.getChildren();
-            if (node.getSelectors().isEmpty()) {
-                parents.forEach(parent -> {
-                    boolean removed = parent.getChildren().remove(node);
-                    assert removed;
-                    parent.getChildren().addAll(children);
-                });
-                children.forEach(child -> {
-                    boolean removed = child.getParents().remove(node);
-                    assert removed;
-                    child.getParents().addAll(parents);
-                });
-                boolean removed = lattice.getNodes().remove(node);
-                assert removed;
-            } else {
-                parents.forEach(parent -> parent.getChildren().addAll(children));
-                children.forEach(child -> {
-                    boolean removed = child.getParents().remove(node);
-                    assert removed;
-                    child.getParents().addAll(parents);
-                });
-                node.getChildren().clear();
-            }
-        };
-
-        lattice.topologicalOrder().forEach(node -> {
-            int childrenNb = node.getChildren().size();
-            Set<Declaration> declarations = node.getSimplifiedDeclarations();
-            long concreteDeclarationsNb = declarations.stream()
-                    .filter(declaration -> declaration instanceof DeclarationConcrete)
-                    .map(declaration -> (DeclarationConcrete) declaration)
-                    .count();
-            long abstractDeclarationsNb = declarations.stream()
-                    .filter(declaration -> declaration instanceof DeclarationAbstract)
-                    .map(declaration -> (DeclarationAbstract) declaration)
-                    .count();
-
-            if ((childrenNb > 0 && childrenNb < Config.getInstance().childrenMinNb())
-                    || concreteDeclarationsNb < Config.getInstance().concreteDeclarationsMinNb()
-                    || abstractDeclarationsNb > Config.getInstance().abstractDeclarationsMaxNb()) {
-                handleNode.accept(node);
-            }
-        });
-    }
-
     private static void spanningArborescence(Lattice lattice) {
         Function<Set<Node>, Node> bestParent = parents -> {
             Node selectedParent = null;
@@ -257,6 +209,48 @@ public class CssToSsl {
             }
         });
         lattice.getNodes().removeAll(oldNodes);
+    }
+
+    private static void filterNodes(Lattice lattice) {
+        Consumer<Node> handleNode = node -> {
+            Set<Node> parents = node.getParents();
+            Set<Node> children = node.getChildren();
+            if (node.getSelectors().isEmpty()) {
+                parents.forEach(parent -> {
+                    boolean removed = parent.getChildren().remove(node);
+                    assert removed;
+                    parent.getChildren().addAll(children);
+                });
+                children.forEach(child -> {
+                    boolean removed = child.getParents().remove(node);
+                    assert removed;
+                    child.getParents().addAll(parents);
+                });
+                boolean removed = lattice.getNodes().remove(node);
+                assert removed;
+            } else {
+                parents.forEach(parent -> parent.getChildren().addAll(children));
+                children.forEach(child -> {
+                    boolean removed = child.getParents().remove(node);
+                    assert removed;
+                    child.getParents().addAll(parents);
+                });
+                node.getChildren().clear();
+            }
+        };
+
+        lattice.topologicalOrder().forEach(node -> {
+            int childrenNb = node.getChildren().size();
+            long declarationsNb = node.getSimplifiedDeclarations().size();
+            long parametersNb = node.getDeclarations().stream()
+                    .filter(declaration -> declaration instanceof DeclarationAbstract)
+                    .count();
+            if ((childrenNb > 0 && childrenNb < Config.getInstance().childrenMinNb())
+                    || declarationsNb < Config.getInstance().declarationsMinNb()
+                    || parametersNb > Config.getInstance().parametersMaxNb()) {
+                handleNode.accept(node);
+            }
+        });
     }
 
     private static List<SslStatement> generateStatements(Lattice lattice) {
@@ -353,8 +347,8 @@ public class CssToSsl {
 
                     if (declarations.isEmpty() && ruleset.getMixinCalls().size() == 1) {
                         splitWithoutMixin.accept(ruleset, newRulesets);
-                    } else if (concreteDeclarationsNb < Config.getInstance().concreteDeclarationsMinNb()
-                            || abstractDeclarationsNb > Config.getInstance().abstractDeclarationsMaxNb()) {
+                    } else if (concreteDeclarationsNb < Config.getInstance().declarationsMinNb()
+                            || abstractDeclarationsNb > Config.getInstance().parametersMaxNb()) {
                         splitWithoutMixin.accept(ruleset, newRulesets);
                     } else {
                         splitWithMixin.apply(ruleset).apply(newRulesets).accept(newMixins);
