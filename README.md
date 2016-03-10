@@ -8,7 +8,7 @@ It enables a fine-grained control on the generated code:
 
 ## How can I use it?
 
-`java -jar mocss.jar -i orgininalFile.css -o generatedFile.css`
+`java -jar mocss.jar -i orgininalFile.css -o generatedFile.scss`
 
 The options enabling a control on the generated code are defined below:
 ```
