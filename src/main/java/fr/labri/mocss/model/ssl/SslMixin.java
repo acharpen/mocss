@@ -22,6 +22,7 @@ package fr.labri.mocss.model.ssl;
 import com.google.common.collect.Lists;
 import fr.labri.mocss.model.Declaration;
 import fr.labri.mocss.model.Property;
+import fr.labri.mocss.model.Selector;
 
 import java.util.List;
 import java.util.Set;
@@ -30,19 +31,17 @@ public class SslMixin extends SslStatement {
 
     private String name;
     private List<Property> parameters;
+    private Set<Selector> selectors;
 
-    private SslMixin(List<Property> parameters, Set<Declaration> declarations, List<SslMixinCall> mixinCalls) {
+    public SslMixin(String name, List<Property> parameters, Set<Declaration> declarations, List<SslMixinCall> mixinCalls, Set<Selector> selectors) {
         super(declarations, mixinCalls);
         this.parameters = parameters;
-    }
-
-    public SslMixin(String name, List<Property> parameters, Set<Declaration> declarations, List<SslMixinCall> mixinCalls) {
-        this(parameters, declarations, mixinCalls);
+        this.selectors = selectors;
         this.name = name;
     }
 
-    public SslMixin(String name, Set<Declaration> declarations, List<SslMixinCall> mixinCalls) {
-        this(name, Lists.newLinkedList(), declarations, mixinCalls);
+    public SslMixin(String name, Set<Declaration> declarations, List<SslMixinCall> mixinCalls, Set<Selector> selectors) {
+        this(name, Lists.newLinkedList(), declarations, mixinCalls, selectors);
     }
 
     public String getName() {
@@ -55,6 +54,10 @@ public class SslMixin extends SslStatement {
 
     public boolean hasParameters() {
         return !this.parameters.isEmpty();
+    }
+
+    public Set<Selector> getSelectors() {
+        return this.selectors;
     }
 
     @Override

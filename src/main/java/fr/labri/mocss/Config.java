@@ -55,7 +55,7 @@ public class Config {
     @Option(name = "--preserve-semantic",
             usage = "preserves semantic of the css input file. "
                     + "If sets, more mixins are generated.")
-    private boolean preserveSemantic = false;
+    private boolean preserveSemantic = true;
 
     @Option(name = "--no-duplicates-ruleset",
             usage = "avoids duplicated declarations in rulesets. "
@@ -72,13 +72,13 @@ public class Config {
             usage = "avoids mixins introducing less than VALUE declarations. "
                     + "Lower the value is, less mixins are generated.",
             metaVar = "VALUE")
-    private int declarationsMinNb = 4;
+    private int declarationsMinNb = 3;
 
     @Option(name = "--max-parameters",
             usage = "avoids mixins having more than VALUE parameters. "
                     + "Lower the value is, less mixins are generated.",
             metaVar = "VALUE")
-    private int parametersMaxNb = 6;
+    private int parametersMaxNb = 1;
 
     @Option(name = "--debug",
             usage = "debug mode")

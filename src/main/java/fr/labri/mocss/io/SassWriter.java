@@ -39,6 +39,11 @@ public class SassWriter extends SslWriter {
     @Override
     public void writeMixins(List<SslMixin> mixins, Writer writer) throws IOException {
         for (SslMixin mixin : mixins) {
+            writer.write("// Declarations are factorized from the following selectors:\n");
+            for (Selector selector : mixin.getSelectors()) {
+                writer.write(String.format("// %s (line %d)\n",
+                        selector.getSelector(), selector.getPosition().getLineNumber()));
+            }
             String identifier = mixin.getName();
             if (mixin.hasParameters()) {
                 String parametersAsString = StringUtils.join(

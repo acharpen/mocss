@@ -38,6 +38,8 @@ import java.util.List;
 
 public class Css3Parser extends CssParser {
 
+
+
     @Override
     public void parse(File cssFile) throws CssParsingException {
         final CascadingStyleSheet data = CSSReader.readFromFile(cssFile, CCharset.CHARSET_UTF_8_OBJ, ECSSVersion.CSS30);
@@ -46,7 +48,6 @@ public class Css3Parser extends CssParser {
         }
         CSSVisitor.visitCSS(data, new CssVisitor());
     }
-
 
     private class CssVisitor implements ICSSVisitor {
 
@@ -61,6 +62,9 @@ public class Css3Parser extends CssParser {
             this.currentDeclarations = Lists.newArrayList();
             this.ignoreCssStatement = false;
             this.ignoredCssStatement = null;
+            rulesNb = 0;
+            declarationsNb = 0;
+            selectorsNb = 0;
         }
 
         @Override
@@ -70,6 +74,7 @@ public class Css3Parser extends CssParser {
         public void onEndStyleRule(@Nonnull CSSStyleRule cssStyleRule) {
             if (!this.ignoreCssStatement) {
                 if (!this.currentDeclarations.isEmpty()) {
+                    rulesNb++;
                     this.currentSelectors.forEach(currentSelector ->
                                     rulesets.add(new CssRuleset(currentSelector, this.currentDeclarations, getPosition(cssStyleRule)))
                     );
@@ -82,6 +87,7 @@ public class Css3Parser extends CssParser {
         @Override
         public void onStyleRuleSelector(@Nonnull CSSSelector cssSelector) {
             if (!this.ignoreCssStatement) {
+                selectorsNb++;
                 String selector = cssSelector.getAsCSSString(new CSSWriterSettings(ECSSVersion.CSS30), 0);
                 assert !selector.isEmpty();
                 currentSelectors.add(new Selector(selector, getPosition(cssSelector)));
@@ -91,6 +97,7 @@ public class Css3Parser extends CssParser {
         @Override
         public void onDeclaration(@Nonnull CSSDeclaration cssDeclaration) {
             if (!this.ignoreCssStatement) {
+                declarationsNb++;
                 String property = cssDeclaration.getProperty();
                 String value = cssDeclaration.getExpression().getAsCSSString(new CSSWriterSettings(ECSSVersion.CSS30), 0);
                 assert !property.isEmpty() && !value.isEmpty();

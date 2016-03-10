@@ -40,6 +40,9 @@ public abstract class CssParser {
 
     protected List<CssRuleset> rulesets;
     protected List<CssUnknownRule> unknownRules;
+    protected int rulesNb;
+    protected int selectorsNb;
+    protected int declarationsNb;
 
     public CssParser() {
         this.rulesets = Lists.newArrayList();
@@ -96,6 +99,18 @@ public abstract class CssParser {
                 mappingSelectorProperties.put(selector, Sets.newHashSet(properties));
             }
         });
+    }
+
+    public int rulesNb() {
+        return this.rulesNb;
+    }
+
+    public int selectorsNb() {
+        return this.selectorsNb;
+    }
+
+    public int declarationsNb() {
+        return this.declarationsNb;
     }
 
     public abstract void parse(File cssFile) throws CssParsingException;

@@ -113,6 +113,9 @@ public class CssToSsl {
             Set<Selector> selectors = concept.getSimplifiedExtents().stream()
                     .map(extent -> (Selector) extent.getElement())
                     .collect(Collectors.toSet());
+            Set<Selector> allSelectors = concept.getExtents().stream()
+                    .map(extent -> (Selector) extent.getElement())
+                    .collect(Collectors.toSet());
             Set<Declaration> declarations = concept.getIntents().stream()
                     .map(intent -> {
                         ElementWithIdentifier fcaElement = intent.getElement();
@@ -125,7 +128,7 @@ public class CssToSsl {
                         }
                     })
                     .collect(Collectors.toSet());
-            Node node = new Node(i++, selectors, declarations);
+            Node node = new Node(i++, selectors, allSelectors, declarations);
             nodes.add(node);
             mapping.put(concept, node);
         }
@@ -305,7 +308,7 @@ public class CssToSsl {
                 SslRuleset newRuleset = new SslRuleset(selectors, declarations, mixinCalls);
                 statements.add(newRuleset);
             } else {
-                SslMixin newMixin = new SslMixin(mixinName("m"), parameters, declarations, mixinCalls);
+                SslMixin newMixin = new SslMixin(mixinName("m"), parameters, declarations, mixinCalls, node.getallSelectors());
                 statements.add(newMixin);
                 mappingNodeMixin.put(node, newMixin);
                 if (!selectors.isEmpty()) {
@@ -325,7 +328,7 @@ public class CssToSsl {
         };
         Function<SslRuleset, Function<List<SslRuleset>, Consumer<List<SslMixin>>>> splitWithMixin =
                 ruleset -> rulesets -> mixins -> {
-                    SslMixin newMixin = new SslMixin(mixinName("s"), ruleset.getDeclarations(), ruleset.getMixinCalls());
+                    SslMixin newMixin = new SslMixin(mixinName("s"), ruleset.getDeclarations(), ruleset.getMixinCalls(), ruleset.getSelectors());
                     mixins.add(newMixin);
                     ruleset.getSelectors().forEach(selector -> {
                         rulesets.add(new SslRuleset(selector, new SslMixinCall(newMixin)));

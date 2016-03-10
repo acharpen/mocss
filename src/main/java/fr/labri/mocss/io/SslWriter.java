@@ -41,6 +41,7 @@ public abstract class SslWriter {
         try (BufferedWriter writer = Files.newBufferedWriter(outputFile.toPath(), Charset.defaultCharset(),
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
             writeMixins(statements.getLeft(), writer);
+            writer.write("\n");
             writeRulesets(statements.getRight(), writer);
         } catch (IOException e) {
             System.err.println("error: failed to write file: " + outputFile);
@@ -51,7 +52,8 @@ public abstract class SslWriter {
     public void writeUnhandledCode(List<CssUnknownRule> unknownRules, File outputFile) throws IOException {
         Collections.sort(unknownRules, new ElementWithPositionComparator());
         try (BufferedWriter writer = Files.newBufferedWriter(outputFile.toPath(), Charset.defaultCharset(),
-                StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+            writer.write("\n// Unhandled css code\n");
             for (CssUnknownRule unknownRule : unknownRules) {
                 writer.write(unknownRule.getContent());
                 writer.write("\n");

@@ -32,11 +32,13 @@ public class Node {
     private Set<Node> parents;
     private Set<Node> children;
     private Set<Selector> selectors;
+    private Set<Selector> allSelectors;
     private Set<Declaration> declarations;
 
-    public Node(int identifier, Set<Selector> selectors, Set<Declaration> declarations) {
+    public Node(int identifier, Set<Selector> selectors, Set<Selector> allSelectors, Set<Declaration> declarations) {
         this.identifier = identifier;
         this.selectors = selectors;
+        this.allSelectors = allSelectors;
         this.declarations = declarations;
         this.parents = Sets.newHashSet();
         this.children = Sets.newHashSet();
@@ -44,6 +46,10 @@ public class Node {
 
     public Set<Selector> getSelectors() {
         return this.selectors;
+    }
+
+    public Set<Selector> getallSelectors() {
+        return this.allSelectors;
     }
 
     public Set<Declaration> getDeclarations() {
