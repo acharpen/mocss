@@ -53,8 +53,8 @@ public class Config {
     private OutputFormat outputFormat = OutputFormat.SCSS;
 
     @Option(name = "--preserve-semantic",
-            usage = "preserves semantic of the css input file. "
-                    + "If sets, more mixins are generated.")
+            usage = "preserves order of the rules in the ouput file. "
+                    + "If sets, semantic of the css input file is preserved and more mixins are generated.")
     private boolean preserveSemantic = true;
 
     @Option(name = "--no-duplicates-ruleset",
