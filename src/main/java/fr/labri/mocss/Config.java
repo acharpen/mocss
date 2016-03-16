@@ -64,13 +64,13 @@ public class Config {
 
     @Option(name = "--min-children",
             usage = "avoids mixins used less than VALUE times. "
-                    + "Lower the value is, less mixins are generated.",
+                    + "Lower the value is, more mixins are generated.",
             metaVar = "VALUE")
     private int childrenMinNb = 2;
 
     @Option(name = "--min-declarations",
             usage = "avoids mixins introducing less than VALUE declarations. "
-                    + "Lower the value is, less mixins are generated.",
+                    + "Lower the value is, more mixins are generated.",
             metaVar = "VALUE")
     private int declarationsMinNb = 3;
 
