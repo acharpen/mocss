@@ -19,11 +19,14 @@
 
 package fr.labri.mocss;
 
+import com.google.common.collect.Lists;
 import fr.labri.mocss.algo.CssToSsl;
+import fr.labri.mocss.algo.filters.FilteringNodesAlgorithm;
+import fr.labri.mocss.algo.filters.GroupsBasedFiltering;
+import fr.labri.mocss.algo.filters.ThresholdsBasedFiltering;
 import fr.labri.mocss.io.IoUtils;
 import fr.labri.mocss.io.SassWriter;
 import fr.labri.mocss.io.SslWriter;
-import fr.labri.mocss.model.css.CssRuleset;
 import fr.labri.mocss.model.ssl.SslMixin;
 import fr.labri.mocss.model.ssl.SslRuleset;
 import fr.labri.mocss.parser.css.Css3Parser;
@@ -32,8 +35,8 @@ import fr.labri.mocss.parser.css.CssParsingException;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class App {
@@ -64,22 +67,42 @@ public class App {
         /* Extract mixins */
         Pair<List<SslMixin>, List<SslRuleset>> statements = null;
         try {
-            statements = CssToSsl.compute(cssParser.getRulesets());
-            System.out.print(">> Results: ");
-            int mixinsNb = statements.getLeft().size();
-            if (mixinsNb < 2) {
-                System.out.println(mixinsNb+ " mixin generated");
-            } else {
-                System.out.println(mixinsNb + " mixins generated");
+            List<FilteringNodesAlgorithm> filters = Lists.newArrayList(new ThresholdsBasedFiltering());
+            if (Config.getInstance().groupsFilter()) {
+                filters.add(0, new GroupsBasedFiltering());
             }
-            statements.getLeft().forEach(mixin -> {
-                String line = String.format("Mixin %s: {parameters: %d; declarations: %d; uses: %d}",
-                        mixin.getName(),
-                        mixin.getParameters().size(),
-                        mixin.getDeclarations().size(),
-                        mixin.getSelectors().size());
-                System.out.println(line);
-            });
+            statements = CssToSsl.compute(cssParser.getRulesets(), filters);
+
+            Consumer<List<SslMixin>> printMixin = mixins -> {
+                int mixinsNb = mixins.size();
+                if (mixinsNb < 2) {
+                    System.out.println(">> " + mixinsNb + " mixin generated");
+                } else {
+                    System.out.println(">> " + mixinsNb + " mixins generated");
+                }
+                mixins.forEach(mixin -> {
+                    String line = String.format("Mixin %s: {parameters: %d; declarations: %d; uses: %d}",
+                            mixin.getName(),
+                            mixin.getParameters().size(),
+                            mixin.getDeclarations().size(),
+                            mixin.getSelectors().size());
+                    System.out.println(line);
+                });
+            };
+            List<SslMixin> firstMixins = statements.getLeft().stream()
+                    .filter(mixin -> mixin.getName().startsWith("m"))
+                    .collect(Collectors.toList());
+            List<SslMixin> secondMixins = statements.getLeft().stream()
+                    .filter(mixin -> mixin.getName().startsWith("s"))
+                    .collect(Collectors.toList());
+            System.out.println(">> Results:");
+            printMixin.accept(firstMixins);
+            if (!secondMixins.isEmpty()) {
+                System.out.println(">> The following mixins (prefixed by 's') have been generated to avoid");
+                System.out.println(">> duplications while preserving order of the rules in the output file.");
+                System.out.println(">> They can be avoided by modifying value of option '--keep-semantic'.");
+                printMixin.accept(secondMixins);
+            }
         } catch (Exception e) {
             System.err.println("error: failed to extract mixins");
             IoUtils.printErrorAndExit(e);

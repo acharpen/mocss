@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import fr.labri.mocss.Config;
 import fr.labri.mocss.algo.fca.*;
+import fr.labri.mocss.algo.filters.FilteringNodesAlgorithm;
 import fr.labri.mocss.model.*;
 import fr.labri.mocss.model.css.CssRuleset;
 import fr.labri.mocss.model.ssl.SslMixin;
@@ -46,7 +47,8 @@ public class CssToSsl {
 
     private static long mixinsNb = 0;
 
-    public static Pair<List<SslMixin>, List<SslRuleset>> compute(List<CssRuleset> rulesets) throws Exception {
+    public static Pair<List<SslMixin>, List<SslRuleset>> compute(List<CssRuleset> rulesets,
+                                                                 List<FilteringNodesAlgorithm> filteringAlgorithms) throws Exception {
         Context fcaContext = buildContext(rulesets);
 
         Gsh gsh = new Gsh(fcaContext);
@@ -59,7 +61,7 @@ public class CssToSsl {
             spanningArborescence(lattice);
         }
 
-        filterNodes(lattice);
+        filteringAlgorithms.forEach(algorithm -> algorithm.filter(lattice));
 
         List<SslStatement> statements = generateStatements(lattice);
         List<SslMixin> generatedMixins = statements.stream()
@@ -214,53 +216,6 @@ public class CssToSsl {
         lattice.getNodes().removeAll(oldNodes);
     }
 
-    private static void filterNodes(Lattice lattice) {
-        Consumer<Node> handleNode = node -> {
-            Set<Node> parents = node.getParents();
-            Set<Node> children = node.getChildren();
-            if (node.getSelectors().isEmpty()) {
-                parents.forEach(parent -> {
-                    boolean removed = parent.getChildren().remove(node);
-                    assert removed;
-                });
-                children.forEach(child -> {
-                    boolean removed = child.getParents().remove(node);
-                    assert removed;
-                });
-                boolean removed = lattice.getNodes().remove(node);
-                assert removed;
-            } else {
-                children.forEach(child -> {
-                    boolean removed = child.getParents().remove(node);
-                    assert removed;
-                });
-                node.getChildren().clear();
-            }
-            parents.forEach(parent -> {
-                children.forEach(child -> {
-                    Set<Node> descendants = parent.getAllChildren();
-                    if (!descendants.contains(child)) {
-                        parent.getChildren().add(child);
-                        child.getParents().add(parent);
-                    }
-                });
-            });
-        };
-
-        lattice.topologicalOrder().forEach(node -> {
-            int childrenNb = node.getChildren().size();
-            long declarationsNb = node.getSimplifiedDeclarations().size();
-            long parametersNb = node.getDeclarations().stream()
-                    .filter(declaration -> declaration instanceof DeclarationAbstract)
-                    .count();
-            if ((childrenNb > 0 && childrenNb < Config.getInstance().childrenMinNb())
-                    || declarationsNb < Config.getInstance().declarationsMinNb()
-                    || parametersNb > Config.getInstance().parametersMaxNb()) {
-                handleNode.accept(node);
-            }
-        });
-    }
-
     private static List<SslStatement> generateStatements(Lattice lattice) {
         List<SslStatement> statements = Lists.newArrayList();
         Map<Node, SslMixin> mappingNodeMixin = Maps.newHashMap();
@@ -343,23 +298,28 @@ public class CssToSsl {
                 .filter(ruleset -> ruleset.getSelectors().size() > 1)
                 .forEach(ruleset -> {
                     oldRulesets.add(ruleset);
-                    Set<Declaration> declarations = ruleset.getDeclarations();
-                    long concreteDeclarationsNb = declarations.stream()
-                            .filter(declaration -> declaration instanceof DeclarationConcrete)
-                            .map(declaration -> (DeclarationConcrete) declaration)
-                            .count();
-                    long abstractDeclarationsNb = declarations.stream()
-                            .filter(declaration -> declaration instanceof DeclarationAbstract)
-                            .map(declaration -> (DeclarationAbstract) declaration)
-                            .count();
 
-                    if (declarations.isEmpty() && ruleset.getMixinCalls().size() == 1) {
-                        splitWithoutMixin.accept(ruleset, newRulesets);
-                    } else if (concreteDeclarationsNb < Config.getInstance().declarationsMinNb()
-                            || abstractDeclarationsNb > Config.getInstance().parametersMaxNb()) {
+                    if (Config.getInstance().preserveSemanticWithoutMixins()) {
                         splitWithoutMixin.accept(ruleset, newRulesets);
                     } else {
-                        splitWithMixin.apply(ruleset).apply(newRulesets).accept(newMixins);
+                        Set<Declaration> declarations = ruleset.getDeclarations();
+                        long concreteDeclarationsNb = declarations.stream()
+                                .filter(declaration -> declaration instanceof DeclarationConcrete)
+                                .map(declaration -> (DeclarationConcrete) declaration)
+                                .count();
+                        long abstractDeclarationsNb = declarations.stream()
+                                .filter(declaration -> declaration instanceof DeclarationAbstract)
+                                .map(declaration -> (DeclarationAbstract) declaration)
+                                .count();
+
+                        if (declarations.isEmpty() && ruleset.getMixinCalls().size() == 1) {
+                            splitWithoutMixin.accept(ruleset, newRulesets);
+                        } else if (concreteDeclarationsNb < Config.getInstance().declarationsMinNb()
+                                || abstractDeclarationsNb > Config.getInstance().parametersMaxNb()) {
+                            splitWithoutMixin.accept(ruleset, newRulesets);
+                        } else {
+                            splitWithMixin.apply(ruleset).apply(newRulesets).accept(newMixins);
+                        }
                     }
                 });
         generatedRulesets.removeAll(oldRulesets);

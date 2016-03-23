@@ -39,6 +39,10 @@ public class SassWriter extends SslWriter {
     @Override
     public void writeMixins(List<SslMixin> mixins, Writer writer) throws IOException {
         for (SslMixin mixin : mixins) {
+            if (mixin.getName().startsWith("s")) {
+                writer.write("// " + mixin.getName() + " is used to avoid duplication while preserving order of the rules.\n");
+                writer.write("// It can be avoided by modifying value of option '--keep-semantic'.\n");
+            }
             writer.write("// Declarations are factorized from the following selectors:\n");
             for (Selector selector : mixin.getSelectors()) {
                 writer.write(String.format("// %s (line %d)\n",

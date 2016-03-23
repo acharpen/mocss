@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vaadin.sass.internal.ScssStylesheet;
 import fr.labri.mocss.algo.CssToSsl;
+import fr.labri.mocss.algo.filters.ThresholdsBasedFiltering;
 import fr.labri.mocss.io.IoUtils;
 import fr.labri.mocss.io.SassWriterDebug;
 import fr.labri.mocss.io.SslWriter;
@@ -68,7 +69,6 @@ public class GenerationValidityTest {
         this.config.setDebug(true);
         this.config.setInputFile(cssInputFile);
         this.config.setOutputFile(this.sassGeneratedFile);
-        this.config.setPreserveSemantic(true);
     }
 
     @Before
@@ -97,7 +97,8 @@ public class GenerationValidityTest {
          */
         Pair<List<SslMixin>, List<SslRuleset>> statements = null;
         try {
-            statements = CssToSsl.compute(cssParserInputFile.getRulesets());
+            statements = CssToSsl.compute(cssParserInputFile.getRulesets(),
+                    Lists.newArrayList(new ThresholdsBasedFiltering()));
         } catch (Exception e) {
             IoUtils.printErrorAndExit(e);
         }

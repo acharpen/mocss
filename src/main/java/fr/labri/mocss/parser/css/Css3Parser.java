@@ -38,8 +38,6 @@ import java.util.List;
 
 public class Css3Parser extends CssParser {
 
-
-
     @Override
     public void parse(File cssFile) throws CssParsingException {
         final CascadingStyleSheet data = CSSReader.readFromFile(cssFile, CCharset.CHARSET_UTF_8_OBJ, ECSSVersion.CSS30);

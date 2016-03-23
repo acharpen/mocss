@@ -31,11 +31,6 @@ import java.util.function.Consumer;
 
 public class Config {
 
-    public enum OutputFormat {
-        SCSS
-    }
-
-
     @Option(name =  "-i",
             aliases = { "--input" },
             usage = "the css input file",
@@ -47,36 +42,45 @@ public class Config {
             usage = "the output file")
     private File outputFile;
 
+    public enum OutputFormat { SCSS }
     @Option(name = "-f",
             aliases = { "--output-format" },
             usage = "language of the output file: ")
     private OutputFormat outputFormat = OutputFormat.SCSS;
 
-    @Option(name = "--preserve-semantic",
-            usage = "preserves order of the rules in the ouput file. "
-                    + "If sets, semantic of the css input file is preserved and more mixins are generated.")
-    private boolean preserveSemantic = true;
+    @Option(name = "--groups-filter",
+            usage = "generates mixins factorizing common properties.")
+    private boolean groupsFilter = false;
 
-    @Option(name = "--no-duplicates-ruleset",
-            usage = "avoids duplicated declarations in rulesets. "
+    public enum SemanticPreserving { full, slight, none }
+    @Option(name = "--keep-semantic",
+            usage = "determines whether semantics of the input file has to be preserved.\n" +
+                    "full: semantics is preserved and additional mixins are generated to avoid duplication;\n" +
+                    "slight: semantics is preserved without new mixins;\n" +
+                    "none: semantics is not preserved.",
+            metaVar = "VALUE")
+    private SemanticPreserving semantic = SemanticPreserving.full;
+
+    @Option(name = "--no-duplicates-into-rule",
+            usage = "avoids duplicated declarations in ruleset. "
                     + "If sets, more mixins are generated.")
     private boolean noDuplicatesInRuleset = false;
 
     @Option(name = "--min-children",
-            usage = "avoids mixins used less than VALUE times. "
-                    + "Lower the value is, more mixins are generated.",
+            usage = "avoids mixins used less than VALUE times. " +
+                    "Lower the value is, more mixins are generated.",
             metaVar = "VALUE")
     private int childrenMinNb = 2;
 
     @Option(name = "--min-declarations",
-            usage = "avoids mixins introducing less than VALUE declarations. "
-                    + "Lower the value is, more mixins are generated.",
+            usage = "avoids mixins introducing less than VALUE declarations. " +
+                    "Lower the value is, more mixins are generated.",
             metaVar = "VALUE")
     private int declarationsMinNb = 3;
 
     @Option(name = "--max-parameters",
-            usage = "avoids mixins having more than VALUE parameters. "
-                    + "Lower the value is, less mixins are generated.",
+            usage = "avoids mixins having more than VALUE parameters. " +
+                    "Lower the value is, less mixins are generated.",
             metaVar = "VALUE")
     private int parametersMaxNb = 1;
 
@@ -125,30 +129,6 @@ public class Config {
         this.outputFile = outputFile;
     }
 
-    public void setOutputFormat(OutputFormat outputFormat) {
-        this.outputFormat = outputFormat;
-    }
-
-    public void setPreserveSemantic(boolean preserveSemantic) {
-        this.preserveSemantic = preserveSemantic;
-    }
-
-    public void setNoDuplicatesInRuleset(boolean noDuplicatesInRuleset) {
-        this.noDuplicatesInRuleset = noDuplicatesInRuleset;
-    }
-
-    public void setChildrenMinNb(int childrenMinNb) {
-        this.childrenMinNb = childrenMinNb;
-    }
-
-    public void setDeclarationsMinNb(int declarationsMinNb) {
-        this.declarationsMinNb = declarationsMinNb;
-    }
-
-    public void setParametersMaxNb(int parametersMaxNb) {
-        this.parametersMaxNb = parametersMaxNb;
-    }
-
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
@@ -195,8 +175,17 @@ public class Config {
         return this.outputFormat;
     }
 
+    public boolean groupsFilter() {
+        return this.groupsFilter;
+    }
+
     public boolean preserveSemantic() {
-        return this.preserveSemantic;
+        return this.semantic.equals(SemanticPreserving.full) ||
+                this.semantic.equals(SemanticPreserving.slight);
+    }
+
+    public boolean preserveSemanticWithoutMixins() {
+        return this.semantic.equals(SemanticPreserving.slight);
     }
 
     public boolean noDuplicatesInRuleset() {
