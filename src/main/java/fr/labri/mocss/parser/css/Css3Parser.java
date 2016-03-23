@@ -73,9 +73,11 @@ public class Css3Parser extends CssParser {
             if (!this.ignoreCssStatement) {
                 if (!this.currentDeclarations.isEmpty()) {
                     rulesNb++;
-                    this.currentSelectors.forEach(currentSelector ->
-                                    rulesets.add(new CssRuleset(currentSelector, this.currentDeclarations, getPosition(cssStyleRule)))
-                    );
+                    Position position = getPosition(cssStyleRule);
+                    this.currentSelectors.forEach(currentSelector -> {
+                        currentSelector.getPosition().setLineNumber(position.getLineNumber());
+                        rulesets.add(new CssRuleset(currentSelector, this.currentDeclarations, position));
+                    });
                     this.currentDeclarations.clear();
                 }
                 this.currentSelectors.clear();

@@ -25,7 +25,7 @@ import fr.labri.mocss.algo.fca.ElementWithIdentifier;
 public class Selector extends ElementWithIdentifier implements ElementWithPosition {
 
     private final String selector;
-    private final Position position;
+    private Position position;
 
     public Selector(String selector, Position position) {
         this.selector = selector;

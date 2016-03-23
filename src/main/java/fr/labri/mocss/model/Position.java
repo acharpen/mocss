@@ -21,13 +21,17 @@ package fr.labri.mocss.model;
 
 public class Position {
 
-    private final int lineNumber;
-    private final int columnNumber;
+    private int lineNumber;
+    private int columnNumber;
 
     public Position(int lineNumber, int columnNumber) {
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
     }
+
+    public void setLineNumber(int lineNumber) { this.lineNumber = lineNumber; }
+
+    public void setColumnNumber(int columnNumber) { this.columnNumber = columnNumber; }
 
     public int getLineNumber() {
         return this.lineNumber;

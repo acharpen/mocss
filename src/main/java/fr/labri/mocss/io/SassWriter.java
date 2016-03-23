@@ -65,11 +65,10 @@ public class SassWriter extends SslWriter {
     @Override
     public void writeRulesets(List<SslRuleset> rulesets, Writer writer) throws IOException {
         for (SslRuleset ruleset : rulesets) {
-            String selectorsAsString = StringUtils.join(
-                    ruleset.getSelectors().stream()
-                            .map(Selector::getSelector).collect(Collectors.toList()),
-                    ", ");
-            writer.write(selectorsAsString);
+            List<String> selectors = ruleset.getSelectors().stream()
+                    .map(Selector::getSelector)
+                    .collect(Collectors.toList());
+            writer.write(StringUtils.join(selectors, ", "));
             writeStatementContent(ruleset, writer);
         }
     }

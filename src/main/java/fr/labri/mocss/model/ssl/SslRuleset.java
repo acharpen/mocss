@@ -44,10 +44,6 @@ public class SslRuleset extends SslStatement {
         this(Sets.newHashSet(selector), declarations, mixinCalls);
     }
 
-    public SslRuleset(Selector selector, List<SslMixinCall> mixinCalls) {
-        this(Sets.newHashSet(selector), Sets.newHashSet(), mixinCalls);
-    }
-
     public SslRuleset(Selector selector, SslMixinCall mixinCall) {
         this(Sets.newHashSet(selector), Sets.newHashSet(), Lists.newArrayList(mixinCall));
     }
