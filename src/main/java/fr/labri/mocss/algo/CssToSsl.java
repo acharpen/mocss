@@ -296,6 +296,13 @@ public class CssToSsl {
 
         generatedRulesets.stream()
                 .filter(ruleset -> ruleset.getSelectors().size() > 1)
+                .filter(ruleset ->
+                    // Tests whether all selectors were in the same rule
+                    ruleset.getSelectors().stream()
+                            .map(selector -> selector.getLineNumber())
+                            .collect(Collectors.toSet())
+                            .size() > 1
+                )
                 .forEach(ruleset -> {
                     oldRulesets.add(ruleset);
 
@@ -331,7 +338,7 @@ public class CssToSsl {
         Map<Integer, SslRuleset> mappingPositionRulesets = Maps.newHashMap();
         List<SslRuleset> oldRulesets = Lists.newArrayList();
         generatedRulesets.forEach(ruleset -> {
-            int position = ruleset.getUniqueSelector().getPosition().getLineNumber();
+            int position = ruleset.getOneSelector().getPosition().getLineNumber();
             if (mappingPositionRulesets.containsKey(position)) {
                 mappingPositionRulesets.get(position).getSelectors().add(ruleset.getUniqueSelector());
                 oldRulesets.add(ruleset);
